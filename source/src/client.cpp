@@ -372,6 +372,14 @@ void addmsg(int type, const char *fmt, ...)
 static int lastupdate = -1000, lastping = 0;
 bool sendmapidenttoserver = false;
 
+// Add to Client::RenderEntities():
+for(int i = 0; i < MAX_CLIENTS; i++) {
+    if(acData[i].ghostEntity) {
+        acData[i].ghostEntity->Render(0.5f); // Transparency
+    }
+}
+
+
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
     if(curpeer) enet_peer_send(curpeer, chan, packet);
