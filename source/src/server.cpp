@@ -5060,4 +5060,47 @@ int main(int argc, char **argv)
     #endif
 }
 #endif
+void Server::InitAntiCheat() {
+    for(int i = 0; i < MAX_CLIENTS; i++) {
+        acData[i].killCount = 0;
+        acData[i].lastKillTime = 0;
+        acData[i].ghostEntity = nullptr;
+    }
+}
+
+void Server::UpdateAntiCheat(int client, int64_t currentTime) {
+    if(acData[client].killCount >= KILL_THRESHOLD) {
+        // Spawn ghost entity
+        if(!acData[client].ghostEntity) {
+            Player* p = GetPlayer(client);
+            if(p) {
+                Vector pos = p->GetPos();
+                acData[client].ghostEntity = new Entity(pos, "ghost");
+                acData[client].ghostEntity->SetInvulnerable(true);
+                acData[client].ghostEntity->SetModel("ghost_model"); 
+            }
+        }
+    }
+}
+
+void Server::HandlePlayerDeath(int killer, int victim) {
+    if(killer >= 0 && killer < MAX_CLIENTS) {
+        int64_t currentTime = GetTime();
+        if(currentTime - acData[killer].lastKillTime <= TIME_THRESHOLD) {
+            acData[killer].killCount++;
+            acData[killer].lastKillTime = currentTime;
+        } else {
+            acData[killer].killCount = 1;
+            acData[killer].lastKillTime = currentTime;
+        }
+    }
+}
+
+void Server::HandlePlayerAttack(int client, Entity* target) {
+    if(acData[client].ghostEntity && target == acData[client].ghostEntity) {
+        KickClient(client, "Anti-cheat violation");
+        delete acData[client].ghostEntity;
+        acData[client].ghostEntity = nullptr;
+    }
+}
 
