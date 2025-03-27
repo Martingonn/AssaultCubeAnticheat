@@ -752,3 +752,15 @@ const char *formatentityattributes(const persistent_entity &e, bool withcomma)
     #undef AA
     return res;
 }
+
+// Add to Entity class:
+bool invulnerable;
+
+void Entity::SetInvulnerable(bool state) {
+    invulnerable = state;
+}
+
+bool Entity::IsInvulnerable() const {
+    return invulnerable;
+}
+
